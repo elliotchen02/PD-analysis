@@ -36,6 +36,7 @@ def extract_hands(path):
     
     # Detect and build list of landmarks frame-by-frame
     all_landmarks = {'landmarks': [], 'hand_labels': []}
+    frame_num = 1
 
     with HandLandmarker.create_from_options(options) as landmarker:
         while True:
@@ -45,14 +46,18 @@ def extract_hands(path):
                 break
         
             # Convert the frame received from OpenCV to a MediaPipe Image object.
-            mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=numpy_frame_from_opencv)
-
+            mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
+            # Detect landmarks
+            timestamp = cap.get(cv.CAP_PROP_POS_MSEC)
+            hand_landmarker_result = landmarker.detect_for_video(mp_image, timestamp)
             
-    
-
-
-
-
+            # Enumerate landmark list and record landmarkers
+            if not hand_landmarker_result:
+                all_landmarks['landmarks'][f'{frame_num}'] = []
+                continue
+            elif hand_landmarker_result.handedness[0].score >= .95:
+                pass
+        
 
     
 
