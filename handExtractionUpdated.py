@@ -61,7 +61,7 @@ def extract_hands(path, visualize=True):
     WIDTH = int(cap.get(cv.CAP_PROP_FRAME_WIDTH))
     HEIGHT = int(cap.get(cv.CAP_PROP_FRAME_HEIGHT))
     FPS = int(cap.get(cv.CAP_PROP_FPS))
-    OUTPUT_PATH = ''
+    OUTPUT_PATH = '/Users/elliot/Documents/NTU 2023/frames'
 
     # Define codec and create a VideoWriter Object
     if visualize:
@@ -71,7 +71,7 @@ def extract_hands(path, visualize=True):
     # Create a hand landmarker instance with video mode and specified options
     # TODO Model path
     options = HandLandmakerOptions(
-        base_options=BaseOptions(model_asset_path='????'),
+        base_options=BaseOptions(model_asset_path='/Users/elliot/Documents/NTU 2023/PDAnalysis/hand_landmarker (1).task'),
         num_hands=1, 
         min_hand_detection_confidence=0.5,
         running_mode=VisionRunningMode.VIDEO
@@ -113,14 +113,13 @@ def extract_hands(path, visualize=True):
             frame_num += 1
             if frame_num >= 80 * 59:
                 break
-            
 
 
-#TODO update hand labels     
  
 
 if __name__ == '__main__':
-    pass
+    print('Beginning Script . . .')
+    
 
 
 
