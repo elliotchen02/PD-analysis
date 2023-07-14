@@ -4,7 +4,6 @@ from mediapipe.framework.formats import landmark_pb2
 
 import cv2 as cv
 import numpy as np
-import pandas as pd
 import os
 
 # Updated mediapipe solutions March 2023
@@ -57,7 +56,7 @@ def record_landmarks(hand_landmarks):
 def extract_hands(path, visualize=True):
 
     # Obtain capture and video frame dimensions
-    # OUTPUT_PATH to be completed
+    # TODO OUTPUT_PATH
     cap = cv.VideoCapture(path)
     WIDTH = int(cap.get(cv.CAP_PROP_FRAME_WIDTH))
     HEIGHT = int(cap.get(cv.CAP_PROP_FRAME_HEIGHT))
@@ -70,7 +69,7 @@ def extract_hands(path, visualize=True):
         output = cv.VideoWriter(OUTPUT_PATH, fourcc, FPS, (WIDTH, HEIGHT))
 
     # Create a hand landmarker instance with video mode and specified options
-    # Model path to be completed
+    # TODO Model path
     options = HandLandmakerOptions(
         base_options=BaseOptions(model_asset_path='????'),
         num_hands=1, 
@@ -100,7 +99,9 @@ def extract_hands(path, visualize=True):
             # Analyze all hands within the frame and create landmarker visualizations
             for h_idx, hand_list in enumerate(hand_landmarker_result.hand_landmarks):
                 if hand_landmarker_result.handedness[h_idx].score >= 0.95:
-                    
+                    # Record hand label
+                    all_landmarks['hand_labels'].append(hand_landmarker_result.handedness[h_idx].category_name)
+
                     # Record all landmark locations for the frame
                     all_landmarks['landmarks'][f'{frame_num}'] = record_landmarks(hand_list)
 
