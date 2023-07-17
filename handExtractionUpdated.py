@@ -5,6 +5,7 @@ from mediapipe.framework.formats import landmark_pb2
 import cv2 as cv
 import numpy as np
 import os
+import joblib
 
 # Updated mediapipe solutions March 2023
 BaseOptions = mp.tasks.BaseOptions
@@ -113,13 +114,23 @@ def extract_hands(path, visualize=True):
             frame_num += 1
             if frame_num >= 80 * 59:
                 break
+    
+    # Save landmarks as a .txt file
+    # joblib.dump(out_dt, f"{out_video_root}{hand}_hand_{os.path.basename(path)[:-4]}.txt")
+
+    # Release All 
+    cap.release()
+    if visualize:
+        output.release()
+    
 
 
+        
  
 
 if __name__ == '__main__':
     print('Beginning Script . . .')
-    
+
 
 
 
