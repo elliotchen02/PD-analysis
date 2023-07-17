@@ -1,2 +1,2 @@
 # PDanalysis
-Parkinson's Disease ML analysis
+Parkinson's Disease gesture ML analysis using Google's MediaPipe API
