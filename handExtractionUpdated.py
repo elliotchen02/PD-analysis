@@ -55,6 +55,31 @@ def record_landmarks(hand_landmarks):
 
 
 def extract_hands(path, visualize=True):
+    """
+    Input: 
+        path: Path of video capture
+        visualize: Visualize the landmark points onto each frame and save the frames as images. 
+                   Default set to True.
+    
+    extract_hands saves a dictionary that stores landmarkers and hand ID labels. 
+    Landmarkers are stored in a list where each index corresponds to a hand identified in the frame.
+    Hands are comprised of 21 landmarkers, each with designated (x, y, z) coordinates.
+    
+    Landmarkers structure:
+        ['landmarkers'] = [
+            [ (hand_index, numpy_array) ]    
+        ]   
+
+    numpy_array structure (21x3):
+        array = [
+            [x,y,z]
+               .
+               .
+               .
+            [x,y,z]      
+        ]
+        
+    """
 
     # Obtain capture and video frame dimensions
     # TODO OUTPUT_PATH
@@ -79,8 +104,9 @@ def extract_hands(path, visualize=True):
         )
     
     # Detect and build list of landmarks frame-by-frame
-    all_landmarks = {'landmarks': {}, 'hand_labels': []}
-    frame_num = 1
+    all_landmarks = {'landmarks': [], 'hand_labels': []}
+    all_landmarks_list = all_landmarks['landmarks']
+    frame_num = 0
 
     with HandLandmarker.create_from_options(options) as landmarker:
         while True:
@@ -93,18 +119,19 @@ def extract_hands(path, visualize=True):
             # Detect landmarks 
             timestamp = cap.get(cv.CAP_PROP_POS_MSEC)
             hand_landmarker_result = landmarker.detect_for_video(mp_image, timestamp)
+            
+            all_landmarks_list[frame_num] = []
             if not hand_landmarker_result:
-                all_landmarks['landmarks'][f'{frame_num}'] = []
                 continue
-
+            
             # Analyze all hands within the frame and create landmarker visualizations
             for h_idx, hand_list in enumerate(hand_landmarker_result.hand_landmarks):
                 if hand_landmarker_result.handedness[h_idx].score >= 0.95:
                     # Record hand label
                     all_landmarks['hand_labels'].append(hand_landmarker_result.handedness[h_idx].category_name)
 
-                    # Record all landmark locations for the frame
-                    all_landmarks['landmarks'][f'{frame_num}'] = record_landmarks(hand_list)
+                    # Record all landmark locations for the frame from list of landmarks
+                    all_landmarks_list[frame_num].append( (h_idx, record_landmarks(hand_list)) )
 
                     # Draw landmarkers on frame and save to file
                     if visualize:
@@ -115,13 +142,14 @@ def extract_hands(path, visualize=True):
             if frame_num >= 80 * 59:
                 break
     
-    # Save landmarks as a .txt file
+    ## Save landmarks as a .txt file
     # joblib.dump(out_dt, f"{out_video_root}{hand}_hand_{os.path.basename(path)[:-4]}.txt")
 
-    # Release All 
     cap.release()
     if visualize:
         output.release()
+
+    return all_landmarks
     
 
 

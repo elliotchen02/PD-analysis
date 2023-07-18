@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import find_peaks
 from sklearn.preprocessing import minmax_scale
-from .utils import cal_angles, moving_average, my_find_peaks_2, find_period
+from .utils.utils import cal_angles, moving_average, my_find_peaks_2, find_period
 import joblib
 
 

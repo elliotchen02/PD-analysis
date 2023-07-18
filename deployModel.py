@@ -1,7 +1,7 @@
 from .gaitExtraction import gait_extraction
-from .handExtraction import hand_extraction
+from .old_analysis.handExtraction import hand_extraction
 from .voiceFeatureExtraction import voice_features_extraction
-from . import handFeaturesExtraction
+from .old_analysis import handFeaturesExtraction
 from . import gaitFeaturesExtraction
 import os
 from datetime import datetime
