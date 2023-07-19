@@ -112,6 +112,7 @@ def extract_hands(path, visualize=True):
         while True:
             success, frame = cap.read()
             if not success:
+                print('failed')
                 break
 
             # Convert the frame received from OpenCV to a MediaPipe Image object.
@@ -120,7 +121,7 @@ def extract_hands(path, visualize=True):
             timestamp = cap.get(cv.CAP_PROP_POS_MSEC)
             hand_landmarker_result = landmarker.detect_for_video(mp_image, timestamp)
             
-            all_landmarks_list[frame_num] = []
+            all_landmarks_list.append([])
             if not hand_landmarker_result:
                 continue
             
@@ -150,14 +151,12 @@ def extract_hands(path, visualize=True):
         output.release()
 
     return all_landmarks
-    
 
-
-        
- 
 
 if __name__ == '__main__':
     print('Beginning Script . . .')
+    #extract_hands()
+
 
 
 
