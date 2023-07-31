@@ -54,7 +54,7 @@ def record_landmarks(hand_landmarks):
     return np.array(coords_to_narray)
 
 
-def extract_hands(path, visualize=True):
+def extract_hands(path, visualize=False):
     """
     Input: 
         path: Path of video capture
