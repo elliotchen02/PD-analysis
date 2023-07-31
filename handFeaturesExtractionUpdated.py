@@ -6,7 +6,8 @@ import numpy as np
 import pandas as pd
 import os
 
-from .utils.utils import find_period
+from utils.utils import find_period
+from handExtractionUpdated import extract_hands
 
 
 FPS = 59
@@ -32,11 +33,11 @@ def preprocess_landmarks(extraction_dict):
     processed_array = []
     frame_by_frame = extraction_dict['landmarks']
     for frame in frame_by_frame:
-        if frame.length() != 0:
+        if len(frame) != 0:
             for hand_idx, landmark_array in frame:
                 try:
                     processed_array[hand_idx].append(landmark_array)
-                except:
+                except Exception:
                     processed_array.append([])
                     processed_array[-1].append(landmark_array)
 
@@ -52,12 +53,16 @@ def get_thumb_index_dis(hand_landmarks):
     """
 
     # Finds the relative positioning of thumb and index finger (4 and 8 respectively as per MediaPipe model)
-    hand_thumb = hand_landmarks[:, 4, :-1]
-    hand_index = hand_landmarks[:, 8, :-1]
+    hand_thumb = hand_landmarks[:, :, 4, :-1]   #TODO only taking x,y and not z values? Unclear...
+    hand_index = hand_landmarks[:, :, 8, :-1]
 
+    print(hand_thumb)
     hand_4_8_dis = []
-    for t, i in zip(hand_thumb, hand_index):
-        hand_4_8_dis.append(np.linalg.norm(i - t))
+    
+    # Need to zip each frame's landmarks not entire landmark matrix (hence nested loops)
+    for hand_num in range(len(hand_thumb)):
+        for t, i in zip(hand_thumb[hand_num], hand_index[hand_num]):
+            hand_4_8_dis.append(np.linalg.norm(i - t))
     hand_4_8_dis = np.array(hand_4_8_dis)
     
     return hand_4_8_dis
@@ -67,12 +72,13 @@ def get_thumb_pinky_dis(hand_landmarks):
     """
     See get_thumb_index_dis
     """
-    hand_thumb = hand_landmarks[:, 4, :]
-    hand_index = hand_landmarks[:, 20, :]
+    hand_thumb = hand_landmarks[:, :, 4, :-1]
+    hand_index = hand_landmarks[:, :, 20, :-1]
 
     hand_4_20_dis = []
-    for t, i in zip(hand_thumb, hand_index):
-        hand_4_20_dis.append(np.linalg.norm(i - t))
+    for hand_num in range(len(hand_thumb)):
+        for t, i in zip(hand_thumb[hand_num], hand_index[hand_num]):
+            hand_4_20_dis.append(np.linalg.norm(i - t))
     hand_4_20_dis = np.array(hand_4_20_dis)
 
     return hand_4_20_dis
@@ -94,8 +100,8 @@ def extract_thumb_index_periods(hand_pose, ax=None, title=""):
         ax.set_ylabel("Relative thumb-index distance")
         ax.set_title(title)
 
-    return np.diff(p, prepend=0).mean() / fps, (
-                np.diff(p, prepend=0)[:4].mean() / fps - np.diff(p, prepend=0)[-5:].mean() / fps) / 2, mean_hand_dis
+    return np.diff(p, prepend=0).mean() / FPS, (
+                np.diff(p, prepend=0)[:4].mean() / FPS - np.diff(p, prepend=0)[-5:].mean() / FPS) / 2, mean_hand_dis
 
 
 def extract_hand_turning(hand_pose, ax=None, title=""):
@@ -277,7 +283,14 @@ def single_thumb_index_hand(r_path, l_path, out_dir):
 
 
 if __name__ == '__main__':
-    right_path = "/mnt/pd_app/results/test/right_hand_202008069_AR.txt"
-    left_path = "/mnt/pd_app/results/test/left_hand_202008069_AR.txt"
-    out_d = "/mnt/pd_app/results/test/"
-    single_thumb_index_hand(right_path, left_path, out_d)
+    video_path = '/Users/elliot/Documents/NTU 2023/PDAnalysis/20200702_9BL.mp4'
+    hand_pose_array = preprocess_landmarks(extract_hands(video_path))
+    print(hand_pose_array)
+    print(get_thumb_pinky_dis(hand_pose_array))
+   # extract_hand_turning(hand_pose_array)
+
+
+    
+
+
+    
