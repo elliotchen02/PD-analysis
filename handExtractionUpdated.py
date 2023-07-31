@@ -91,13 +91,14 @@ def extract_hands(path, visualize=True):
 
     # Define codec and create a VideoWriter Object
     if visualize:
+        print('Visualizing')
         fourcc = cv.VideoWriter_fourcc(*'MJPG')
         output = cv.VideoWriter(OUTPUT_PATH, fourcc, FPS, (WIDTH, HEIGHT))
 
     # Create a hand landmarker instance with video mode and specified options
     # TODO Model path
     options = HandLandmakerOptions(
-        base_options=BaseOptions(model_asset_path='/Users/elliot/Documents/NTU 2023/PDAnalysis/hand_landmarker (1).task'),
+        base_options=BaseOptions(model_asset_path='/Users/elliot/Documents/NTU 2023/PDAnalysis/mediapipe_models/hand_landmarker (1).task'),
         num_hands=1, 
         min_hand_detection_confidence=0.5,
         running_mode=VisionRunningMode.VIDEO
@@ -112,14 +113,15 @@ def extract_hands(path, visualize=True):
         while True:
             success, frame = cap.read()
             if not success:
-                print('failed')
+                print('Failed to read frame or end of video')
                 break
 
             # Convert the frame received from OpenCV to a MediaPipe Image object.
             mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
             # Detect landmarks 
-            timestamp = cap.get(cv.CAP_PROP_POS_MSEC)
+            timestamp = int(cap.get(cv.CAP_PROP_POS_MSEC))
             hand_landmarker_result = landmarker.detect_for_video(mp_image, timestamp)
+            print(hand_landmarker_result)
             
             all_landmarks_list.append([])
             if not hand_landmarker_result:
@@ -127,9 +129,9 @@ def extract_hands(path, visualize=True):
             
             # Analyze all hands within the frame and create landmarker visualizations
             for h_idx, hand_list in enumerate(hand_landmarker_result.hand_landmarks):
-                if hand_landmarker_result.handedness[h_idx].score >= 0.95:
+                if hand_landmarker_result.handedness[h_idx][0].score >= 0.95:
                     # Record hand label
-                    all_landmarks['hand_labels'].append(hand_landmarker_result.handedness[h_idx].category_name)
+                    all_landmarks['hand_labels'].append(hand_landmarker_result.handedness[h_idx][0].category_name)
 
                     # Record all landmark locations for the frame from list of landmarks
                     all_landmarks_list[frame_num].append( (h_idx, record_landmarks(hand_list)) )
@@ -150,12 +152,16 @@ def extract_hands(path, visualize=True):
     if visualize:
         output.release()
 
+    print(all_landmarks)
+
     return all_landmarks
 
 
 if __name__ == '__main__':
     print('Beginning Script . . .')
-    #extract_hands()
+    path_to_video = '/Users/elliot/Documents/NTU 2023/PDAnalysis/20200702_9BL.mp4'
+    extract_hands(path_to_video, visualize=False)
+    
 
 
 
