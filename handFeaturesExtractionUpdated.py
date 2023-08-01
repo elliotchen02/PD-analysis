@@ -12,7 +12,6 @@ from handExtractionUpdated import extract_hands
 
 FPS = 59
 COVERAGE = 0.5
-SHIFT = FPS
 
 
 def preprocess_landmarks(extraction_dict):
@@ -84,6 +83,7 @@ def get_thumb_pinky_dis(hand_landmarks):
     return hand_4_20_dis
 
 
+#TODO
 def extract_thumb_index_periods(hand_pose, ax=None, title=""):
     hand_dis = get_thumb_index_dis(hand_pose)
     mean_hand_dis = np.mean(hand_dis)
@@ -104,54 +104,78 @@ def extract_thumb_index_periods(hand_pose, ax=None, title=""):
                 np.diff(p, prepend=0)[:4].mean() / FPS - np.diff(p, prepend=0)[-5:].mean() / FPS) / 2, mean_hand_dis
 
 
-def extract_hand_turning(hand_pose, ax=None, title=""):
-     output = []
-     #using top third of index finger as the basis
-     h_p = hand_pose[:, [8, 7], 0].sum(axis=1)
-     #tracking the rotation through the top third of index finger
-     T, _ = find_period(h_p)
-     p, values = find_peaks(h_p, height=np.mean(h_p),
-                            distance=int(T * 0.4))
 
-     if ax:
-         ax.plot(h_p)
-         ax.set_xlabel("Frame")
-         ax.plot(p, np.array(h_p)[p], "x", ms=10)
-         ax.set_ylabel("finger x-axis displacement")
-         ax.set_title(title)
+def extract_hand_turning(hand_landmarks, plot=False, title=""):
+    """
+    Analyzes hand turning by measuring the distance of thumb finger movement. 
+    Plots data. 
+    --------------------------------------------------------------------
+    Input:
+        hand_landmarks : a processed array returned by preprocess_landmarks()
+        plot : (bool) indicating whether to plot
+        title : (string) selected title for graph
+    Output:
+        output : (List)
 
-     h, h_d = np.diff(p, prepend=0).mean() / fps, (
-                 np.diff(p, prepend=0)[:4].mean() / fps - np.diff(p, prepend=0)[-5:].mean() / fps) / 2
-     output.append(h)
-     output.append(h_d)
+    """
+    output = []
+    # using top third of thumb finger as the basis
+    hand_land_sum = hand_landmarks[:, :, [4, 3], 0][0].sum(axis=1)
+    # tracking the rotation through the top third of index finger
+    period, _ = find_period(hand_land_sum)
+    peaks_indx, _ = find_peaks(hand_land_sum, height=np.mean(hand_land_sum),
+                        distance=int(period * 0.4))
 
-     return output
+    if plot:
+        fig, ax = plt.subplots()
+        ax.plot(hand_land_sum)
+        plt.grid(which='major', axis='both')
+        ax.set_xlabel("Identified Frame")
+        ax.plot(peaks_indx, np.array(hand_land_sum)[peaks_indx], "x", ms=10)
+        ax.set_ylabel("Finger x-axis displacement")
+        ax.set_title(title)
+        plt.show()
 
+    h = np.diff(peaks_indx, prepend=0).mean() / FPS
+    h_d = (np.diff(peaks_indx, prepend=0)[:4].mean() / FPS - np.diff(peaks_indx, prepend=0)[-5:].mean() / FPS) / 2
+    
+    output.append((h, h_d))
 
-def extract_hand_turning_all(hand_pose, ax=None, title=""):
-     output = []
-
-     for i in range(21):
-         h_p = hand_pose[:, i, 0]
-         T, _ = find_period(h_p)
-         p, values = find_peaks(h_p, height=np.mean(h_p),
-                                distance=int(T * 0.4))
-
-         if ax:
-             ax.plot(h_p)
-             ax.set_xlabel("Frame")
-             ax.plot(p, np.array(h_p)[p], "x", ms=10)
-             ax.set_ylabel("finger x-axis displacement")
-             ax.set_title(title)
-
-         h, h_d = np.diff(p, prepend=0).mean() / fps, (
-                     np.diff(p, prepend=0)[:4].mean() / fps - np.diff(p, prepend=0)[-5:].mean() / fps) / 2
-         output.append(h)
-         output.append(h_d)
-
-     return output
+    return output
 
 
+def extract_hand_turning_all(hand_landmarks, plot=False, title=""):
+    """
+    Extract hand turning for all 21 landmark indices in hand_landmarks.
+    """
+    
+    output = []
+    
+    for finger_idx in range(21):
+        hand_land_sum = hand_landmarks[:, :, finger_idx, 0][0].sum(axis=1)
+        
+        period, _ = find_period(hand_land_sum)
+        peaks_indx, _ = find_peaks(hand_land_sum, height=np.mean(hand_land_sum),
+                            distance=int(period * 0.4))
+
+        if plot:
+            _, ax = plt.subplots()
+            ax.plot(hand_land_sum)
+            plt.grid(which='major', axis='both')
+            ax.set_xlabel("Identified Frame")
+            ax.plot(peaks_indx, np.array(hand_land_sum)[peaks_indx], "x", ms=10)
+            ax.set_ylabel("Finger x-axis displacement")
+            ax.set_title(title)
+            plt.show()
+
+        h = np.diff(peaks_indx, prepend=0).mean() / FPS
+        h_d = (np.diff(peaks_indx, prepend=0)[:4].mean() / FPS - np.diff(peaks_indx, prepend=0)[-5:].mean() / FPS) / 2
+        
+        output.append((h, h_d))
+
+    return output
+
+#TODO
 def extract_hand_turning_v_lm(hand_pose, ax=None, title="", lms=[4, 8, 16, 20], pick=4):
      output = []
      comb = combinations(lms, pick)
@@ -177,7 +201,7 @@ def extract_hand_turning_v_lm(hand_pose, ax=None, title="", lms=[4, 8, 16, 20], 
 
      return output, i
 
-
+#TODO
 def hand_feature_extraction(path_ls):
     date_ls = []
     pid_ls = []
@@ -264,7 +288,7 @@ def hand_feature_extraction(path_ls):
 
         return df
 
-
+#TODO
 def single_thumb_index_hand(r_path, l_path, out_dir):
 
     fig, ax = plt.subplots(2, 1, figsize=(20, 20))
@@ -286,8 +310,8 @@ if __name__ == '__main__':
     video_path = '/Users/elliot/Documents/NTU 2023/PDAnalysis/20200702_9BL.mp4'
     hand_pose_array = preprocess_landmarks(extract_hands(video_path))
     print(hand_pose_array)
-    print(get_thumb_pinky_dis(hand_pose_array))
-   # extract_hand_turning(hand_pose_array)
+    
+    print(extract_hand_turning(hand_pose_array, plot=True))
 
 
     
