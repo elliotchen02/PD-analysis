@@ -7,6 +7,11 @@ import numpy as np
 import os
 import joblib
 
+import skimage
+import scripy.signal
+
+
+
 # Updated mediapipe solutions March 2023
 BaseOptions = mp.tasks.BaseOptions
 HandLandmarker = mp.tasks.vision.HandLandmarker
@@ -52,6 +57,20 @@ def record_landmarks(hand_landmarks):
         coords_to_narray.append([landmark_point.x, landmark_point.y, landmark_point.z])
     
     return np.array(coords_to_narray)
+
+def imageDeblur(img):
+    #using unsupervised wiener method to deconvolve images for deblurring
+    greyImg = skimage.color.rgb2gray(img)
+    rng = np.random.default_rng()
+    
+    psf = np.ones((5, 5)) / 25
+    greyImg = scripy.signal.convolve2d(greyImg, psf, 'same')
+    greyImg += 0.1 * greyImg.std() * rng.standard_normal(greyImg.shape)
+
+    deconvolved, _ = skimage.restoration.unsupervised_wiener(greyImg, psf)
+    
+    return deconvolved
+    
 
 
 def extract_hands(path, visualize=False):
@@ -115,7 +134,10 @@ def extract_hands(path, visualize=False):
             if not success:
                 print('Failed to read frame or end of video')
                 break
-
+            
+            #deblurring of each frame
+            frame = imageDeblur(frame)
+            
             # Convert the frame received from OpenCV to a MediaPipe Image object.
             mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
             # Detect landmarks 
