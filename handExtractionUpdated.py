@@ -79,7 +79,7 @@ def extract_hands(path, visualize=False):
         path: Path of video capture
         visualize: Visualize the landmark points onto each frame and save the frames as images. 
                    Default set to True.
-    
+    ---------------------------------------------------------------------------------------------
     extract_hands saves a dictionary that stores landmarkers and hand ID labels. 
     Landmarkers are stored in a list where each index corresponds to a hand identified in the frame.
     Hands are comprised of 21 landmarkers, each with designated (x, y, z) coordinates.
@@ -175,13 +175,12 @@ def extract_hands(path, visualize=False):
         output.release()
 
     print(all_landmarks)
-
     return all_landmarks
 
 
 if __name__ == '__main__':
     print('Beginning Script . . .')
-    path_to_video = '/Users/elliot/Documents/NTU 2023/PDAnalysis/20200702_9BL.mp4'
+    path_to_video = '/Users/elliot/Documents/NTU 2023/PDAnalysis/20200429_1BL.mp4'
     extract_hands(path_to_video, visualize=False)
     
 
