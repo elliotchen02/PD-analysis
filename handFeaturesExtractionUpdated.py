@@ -152,7 +152,7 @@ def extract_hand_turning_all(hand_landmarks, plot=False, title=""):
     output = []
     
     for finger_idx in range(21):
-        hand_land_sum = hand_landmarks[:, :, finger_idx, 0][0].sum(axis=1)
+        hand_land_sum = hand_landmarks[:, :, finger_idx, 0][0].sum(axis=1) #TODO indexing
         
         period, _ = find_period(hand_land_sum)
         peaks_indx, _ = find_peaks(hand_land_sum, height=np.mean(hand_land_sum),
