@@ -1,2 +1,3 @@
 # PDanalysis
-Parkinson's Disease gesture ML analysis using Google's MediaPipe API
+Parkinson's Disease gait, gesture, and speech ML analysis using Google's MediaPipe API and PyTorch
+
