@@ -5,6 +5,9 @@
 # movies
 *.mp4
 
+# old analysis
+old_analysis/
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
