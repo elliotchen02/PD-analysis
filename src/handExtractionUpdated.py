@@ -4,11 +4,9 @@ from mediapipe.framework.formats import landmark_pb2
 
 import cv2 as cv
 import numpy as np
-import os
 import joblib
-
 import skimage
-import scripy.signal
+import scipy.signal
 
 
 
@@ -59,12 +57,12 @@ def record_landmarks(hand_landmarks):
     return np.array(coords_to_narray)
 
 def imageDeblur(img):
-    #using unsupervised wiener method to deconvolve images for deblurring
+    # Using unsupervised wiener method to deconvolve images for deblurring
     greyImg = skimage.color.rgb2gray(img)
     rng = np.random.default_rng()
     
     psf = np.ones((5, 5)) / 25
-    greyImg = scripy.signal.convolve2d(greyImg, psf, 'same')
+    greyImg = scipy.signal.convolve2d(greyImg, psf, 'same')
     greyImg += 0.1 * greyImg.std() * rng.standard_normal(greyImg.shape)
 
     deconvolved, _ = skimage.restoration.unsupervised_wiener(greyImg, psf)
@@ -117,7 +115,8 @@ def extract_hands(path, visualize=False):
     # Create a hand landmarker instance with video mode and specified options
     # TODO Model path
     options = HandLandmakerOptions(
-        base_options=BaseOptions(model_asset_path='/Users/elliot/Documents/NTU 2023/PDAnalysis/mediapipe_models/hand_landmarker (1).task'),
+        base_options=BaseOptions(
+        model_asset_path='/Users/elliot/Documents/NTU 2023/PDAnalysis/mediapipe_models/hand_landmarker.task'),
         num_hands=1, 
         min_hand_detection_confidence=0.5,
         running_mode=VisionRunningMode.VIDEO
@@ -135,8 +134,8 @@ def extract_hands(path, visualize=False):
                 print('Failed to read frame or end of video')
                 break
             
-            #deblurring of each frame
-            frame = imageDeblur(frame)
+            # Deblurring of each frame
+            # frame = imageDeblur(frame)
             
             # Convert the frame received from OpenCV to a MediaPipe Image object.
             mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
@@ -174,7 +173,6 @@ def extract_hands(path, visualize=False):
     if visualize:
         output.release()
 
-    print(all_landmarks)
     return all_landmarks
 
 
