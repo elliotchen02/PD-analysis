@@ -135,7 +135,7 @@ def extract_hands(path, visualize=False):
                 break
             
             # Deblurring of each frame
-            # frame = imageDeblur(frame)
+            #frame = imageDeblur(frame)
             
             # Convert the frame received from OpenCV to a MediaPipe Image object.
             mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)

@@ -70,39 +70,39 @@ def calculate_angle(x1, y1, z1,
                    x2, y2, z2,
                    x3, y3, z3):
     # Find direction ratio of line AB
-    ABx = x1 - x2;
-    ABy = y1 - y2;
-    ABz = z1 - z2;
+    ABx = x1 - x2
+    ABy = y1 - y2
+    ABz = z1 - z2
 
     # Find direction ratio of line BC
-    BCx = x3 - x2;
-    BCy = y3 - y2;
-    BCz = z3 - z2;
+    BCx = x3 - x2
+    BCy = y3 - y2
+    BCz = z3 - z2
 
     # Find the dotProduct
     # of lines AB & BC
     dotProduct = (ABx * BCx +
                   ABy * BCy +
-                  ABz * BCz);
+                  ABz * BCz)
 
     # Find magnitude of
     # line AB and BC
     magnitudeAB = (ABx * ABx +
                    ABy * ABy +
-                   ABz * ABz);
+                   ABz * ABz)
     magnitudeBC = (BCx * BCx +
                    BCy * BCy +
-                   BCz * BCz);
+                   BCz * BCz)
 
     # Find the cosine of
     # the angle formed
     # by line AB and BC
-    angle = dotProduct;
+    angle = dotProduct
     angle /= math.sqrt(magnitudeAB *
-                       magnitudeBC);
+                       magnitudeBC)
 
     # Find angle in radian
-    angle = (angle * 180) / 3.14;
+    angle = (angle * 180) / 3.14
 
     # Print angle
     return round(abs(angle), 4)

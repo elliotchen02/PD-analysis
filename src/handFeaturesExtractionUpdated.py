@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 from itertools import combinations
 import joblib
 import numpy as np
-import pandas as pd
 import os
 
 from utils.featurePlot import plot_hand_features
@@ -18,7 +17,7 @@ COVERAGE = 0.5
 
 def preprocess_landmarks(extraction_dict):
     """
-    Input:
+    Args:
         extraction_dict: Dictionary recieved from extract_hands
     Output:
         processed_array: List of landmark arrays with structure:
@@ -47,7 +46,7 @@ def preprocess_landmarks(extraction_dict):
 
 def get_thumb_index_dis(hand_landmarks):
     """
-    Input:
+    Args:
         hand_landmarks: List containing 2D numPy array of landmark coordinates for every frame
     Output:
         hand_4_8_dis: Distance between thumb and index finger tip for every frame
@@ -71,7 +70,8 @@ def get_thumb_index_dis(hand_landmarks):
 
 def get_thumb_pinky_dis(hand_landmarks):
     """
-    See get_thumb_index_dis
+    See get_thumb_index_dis.
+    --------------------------------------
     """
     hand_thumb = hand_landmarks[:, :, 4, :-1]
     hand_index = hand_landmarks[:, :, 20, :-1]
@@ -123,9 +123,12 @@ def extract_hand_turning(hand_landmarks, landmark_index=21, plot=False, title=""
     output = []
 
     for finger_idx in range(1, landmark_index + 1):
-        # using top third of thumb finger as the basis
+        # Using top third of thumb finger as the basis
         hand_land_sum = hand_landmarks[:, :, [finger_idx - 1, finger_idx], 0][0].sum(axis=1)
-        # tracking the rotation through the top third of index finger
+
+        # Normalize points around the x-axis
+
+        # Tracking the rotation through the top third of index finger
         period, _ = find_period(hand_land_sum)
         peaks_indx, _ = find_peaks(
                             hand_land_sum, 
@@ -137,11 +140,13 @@ def extract_hand_turning(hand_landmarks, landmark_index=21, plot=False, title=""
             plot_hand_features(
                 hand_land_sum=hand_land_sum,
                 peaks_indx=peaks_indx,
-                title=f'Current Finger: {finger_idx}',
+                title=f'Current Finger Index: {finger_idx}',
                 x_label='Identified Frame',
                 y_label='Finger x-axis Displacement'
             )
 
+        # h = mean of each peaks duration (second)
+        # h_d = the differences of last 5 peaks compared to the 1st five peaks
         h = np.diff(peaks_indx, prepend=0).mean() / FPS
         h_d = (np.diff(peaks_indx, prepend=0)[:4].mean() / FPS - np.diff(peaks_indx, prepend=0)[-5:].mean() / FPS) / 2
         
