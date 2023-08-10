@@ -63,6 +63,7 @@ def wienerFilter(img, noise):
     # save results
     return restored
 
+
 def imageDeblur(img):
     # Using unsupervised wiener method to deconvolve images for deblurring
     greyImg = skimage.color.rgb2gray(img)
@@ -75,6 +76,7 @@ def imageDeblur(img):
     deconvolved, _ = skimage.restoration.unsupervised_wiener(greyImg, psf)
     
     return deconvolved
+   
     
 def HistogramEqualization(img):
     #converting image from rbg color space into HSV colorspace
@@ -96,26 +98,6 @@ def HistogramEqualization(img):
     outputImg = cv2.cvtColor(HSVimageOut, cv2.COLOR_HSV2BGR)
     
     return(outputImg)
-
-def returnHandmarkerImgFromArray(inputArray):
-    BaseOptions = mp.tasks.BaseOptions
-    HandLandmarker = mp.tasks.vision.HandLandmarker
-    HandLandmarkerOptions = mp.tasks.vision.HandLandmarkerOptions
-    VisionRunningMode = mp.tasks.vision.RunningMode
-
-    # Create a hand landmarker instance with the image mode:
-    options = HandLandmarkerOptions(
-        base_options=BaseOptions(model_asset_path='hand_landmarker.task'),
-        running_mode=VisionRunningMode.IMAGE)
-    with HandLandmarker.create_from_options(options) as landmarker:
-        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=inputArray)
-        hand_landmarker_result = landmarker.detect(mp_image)
-        annotated_image = draw_landmarks_on_image(image.numpy_view(), detection_result)
-        
-    cv2.imshow(cv2.cvtColor(annotated_image, cv2.COLOR_RGB2BGR))
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-
 
 
 
