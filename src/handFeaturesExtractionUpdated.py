@@ -10,7 +10,6 @@ from utils.utils import find_period
 from handExtractionUpdated import extract_hands
 
 
-
 FPS = 59
 COVERAGE = 0.5
 
@@ -125,8 +124,6 @@ def extract_hand_turning(hand_landmarks, landmark_index=21, plot=False):
     for finger_idx in range(1, landmark_index + 1):
         # Using top third of thumb finger as the basis
         hand_land_sum = hand_landmarks[:, :, [finger_idx - 1, finger_idx], 0][0].sum(axis=1)
-
-        # Normalize points around the x-axis?
 
         # Tracking the rotation through the top third of index finger
         period, _ = find_period(hand_land_sum)
