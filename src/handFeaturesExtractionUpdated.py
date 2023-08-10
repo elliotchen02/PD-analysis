@@ -106,7 +106,7 @@ def extract_thumb_index_periods(hand_pose, ax=None, title=""):
                 np.diff(p, prepend=0)[:4].mean() / FPS - np.diff(p, prepend=0)[-5:].mean() / FPS) / 2, mean_hand_dis
 
 
-def extract_hand_turning(hand_landmarks, landmark_index=21, plot=False, title=""):
+def extract_hand_turning(hand_landmarks, landmark_index=21, plot=False):
     """
     Analyzes hand turning by measuring the distance of thumb finger movement. 
     Plots data. 
@@ -126,7 +126,7 @@ def extract_hand_turning(hand_landmarks, landmark_index=21, plot=False, title=""
         # Using top third of thumb finger as the basis
         hand_land_sum = hand_landmarks[:, :, [finger_idx - 1, finger_idx], 0][0].sum(axis=1)
 
-        # Normalize points around the x-axis
+        # Normalize points around the x-axis?
 
         # Tracking the rotation through the top third of index finger
         period, _ = find_period(hand_land_sum)

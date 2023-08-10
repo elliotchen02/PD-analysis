@@ -5,9 +5,9 @@ from mediapipe.framework.formats import landmark_pb2
 import cv2 as cv
 import numpy as np
 import joblib
-import skimage
-import scipy.signal
+import os
 
+from utils.imageSharpening import HistogramEqualization
 
 
 # Updated mediapipe solutions March 2023
@@ -28,7 +28,7 @@ def draw_landmarks_on_image(rgb_image, hand_landmarks):
 
     annotated_image = np.copy(rgb_image)
 
-    # Draw the hand landmarks.
+    # Draw the hand landmarks
     hand_landmarks_proto = landmark_pb2.NormalizedLandmarkList()
     hand_landmarks_proto.landmark.extend([
     landmark_pb2.NormalizedLandmark(x=landmark.x, y=landmark.y, z=landmark.z) for landmark in hand_landmarks
@@ -55,20 +55,6 @@ def record_landmarks(hand_landmarks):
         coords_to_narray.append([landmark_point.x, landmark_point.y, landmark_point.z])
     
     return np.array(coords_to_narray)
-
-def imageDeblur(img):
-    # Using unsupervised wiener method to deconvolve images for deblurring
-    greyImg = skimage.color.rgb2gray(img)
-    rng = np.random.default_rng()
-    
-    psf = np.ones((5, 5)) / 25
-    greyImg = scipy.signal.convolve2d(greyImg, psf, 'same')
-    greyImg += 0.1 * greyImg.std() * rng.standard_normal(greyImg.shape)
-
-    deconvolved, _ = skimage.restoration.unsupervised_wiener(greyImg, psf)
-    
-    return deconvolved
-    
 
 
 def extract_hands(path, visualize=False):
@@ -99,21 +85,20 @@ def extract_hands(path, visualize=False):
     """
 
     # Obtain capture and video frame dimensions
-    # TODO OUTPUT_PATH
     cap = cv.VideoCapture(path)
     WIDTH = int(cap.get(cv.CAP_PROP_FRAME_WIDTH))
     HEIGHT = int(cap.get(cv.CAP_PROP_FRAME_HEIGHT))
     FPS = int(cap.get(cv.CAP_PROP_FPS))
-    OUTPUT_PATH = '/Users/elliot/Documents/NTU 2023/frames'
-
+    VIDEO_OUTPUT_PATH = '/Users/elliot/Documents/NTU 2023/PDAnalysis/extractions/video'       #TODO issues with output_path and what it means
+    FRAMES_OUTPUT_PATH = '/Users/elliot/Documents/NTU 2023/PDAnalysis/extractions/'
     # Define codec and create a VideoWriter Object
     if visualize:
-        print('Visualizing')
+        print('Visualizing . . .')
+        print('----------------------------')
         fourcc = cv.VideoWriter_fourcc(*'MJPG')
-        output = cv.VideoWriter(OUTPUT_PATH, fourcc, FPS, (WIDTH, HEIGHT))
+        output = cv.VideoWriter(VIDEO_OUTPUT_PATH, fourcc, FPS, (WIDTH, HEIGHT))
 
     # Create a hand landmarker instance with video mode and specified options
-    # TODO Model path
     options = HandLandmakerOptions(
         base_options=BaseOptions(
         model_asset_path='/Users/elliot/Documents/NTU 2023/PDAnalysis/mediapipe_models/hand_landmarker.task'),
@@ -131,18 +116,17 @@ def extract_hands(path, visualize=False):
         while True:
             success, frame = cap.read()
             if not success:
-                print('Failed to read frame or end of video')
+                print('Failed to read frame or end of video!')
                 break
             
             # Deblurring of each frame
-            #frame = imageDeblur(frame)
+            frame = HistogramEqualization(frame)
             
             # Convert the frame received from OpenCV to a MediaPipe Image object.
             mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
             # Detect landmarks 
             timestamp = int(cap.get(cv.CAP_PROP_POS_MSEC))
             hand_landmarker_result = landmarker.detect_for_video(mp_image, timestamp)
-            print(hand_landmarker_result)
             
             all_landmarks_list.append([])
             if not hand_landmarker_result:
@@ -159,15 +143,16 @@ def extract_hands(path, visualize=False):
 
                     # Draw landmarkers on frame and save to file
                     if visualize:
-                        annotated_frame = draw_landmarks_on_image(frame.numpy_view(), hand_list)
-                        output.write(annotated_frame)
+                        frame_name = f'frame_{frame_num}.jpg'
+                        annotated_frame = draw_landmarks_on_image(frame, hand_list)
+                        cv.imwrite(os.path.join(FRAMES_OUTPUT_PATH, frame_name), annotated_frame)
                 
             frame_num += 1
             if frame_num >= 80 * 59:
                 break
     
-    ## Save landmarks as a .txt file
-    # joblib.dump(out_dt, f"{out_video_root}{hand}_hand_{os.path.basename(path)[:-4]}.txt")
+    ##TODO Uncomment to save landmarks as a .txt file 
+    #joblib.dump(all_landmarks, f"{OUTPUT_PATH}right_hand_{os.path.basename(path)[:-4]}.txt")
 
     cap.release()
     if visualize:
@@ -178,8 +163,9 @@ def extract_hands(path, visualize=False):
 
 if __name__ == '__main__':
     print('Beginning Script . . .')
-    path_to_video = '/Users/elliot/Documents/NTU 2023/PDAnalysis/20200429_1BL.mp4'
-    extract_hands(path_to_video, visualize=False)
+    print('--------------------------------')
+    path_to_video = '/Users/elliot/Documents/NTU 2023/PDAnalysis/20200702_9BL.mp4'
+    extract_hands(path_to_video, visualize=True)
     
 
 

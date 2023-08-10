@@ -4,15 +4,18 @@ Created on Mon Jul 31 14:14:07 2023
 
 @author: hansd
 """
-
-import cv2 as cv2
-#import joblib
-#import os
-import numpy as np
-import matplotlib.pyplot as plt
 import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
+
+import numpy as np
+import matplotlib.pyplot as plt
+import cv2 as cv2
+#import joblib
+#import os
+
+import skimage
+import scipy.signal
 
 #The movement of the hand causes each individual frame of the video to be hard to landmark
 #Thus we are attempting to find reliable ways to sharpen each individual frames within the video
@@ -59,6 +62,19 @@ def wienerFilter(img, noise):
     
     # save results
     return restored
+
+def imageDeblur(img):
+    # Using unsupervised wiener method to deconvolve images for deblurring
+    greyImg = skimage.color.rgb2gray(img)
+    rng = np.random.default_rng()
+    
+    psf = np.ones((5, 5)) / 25
+    greyImg = scipy.signal.convolve2d(greyImg, psf, 'same')
+    greyImg += 0.1 * greyImg.std() * rng.standard_normal(greyImg.shape)
+
+    deconvolved, _ = skimage.restoration.unsupervised_wiener(greyImg, psf)
+    
+    return deconvolved
     
 def HistogramEqualization(img):
     #converting image from rbg color space into HSV colorspace
@@ -101,34 +117,37 @@ def returnHandmarkerImgFromArray(inputArray):
     cv2.destroyAllWindows()
 
 
-#generate handlandmarker on original image
-img = cv2.imread("screenshot.jpg", cv2.IMREAD_COLOR)
-cv2.imshow("image", img)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
-returnHandmarkerImgFromArray(img)
-
-#generate handlandmarker on sharpened image
-SharpenedImg = imageSharpening(img)
-cv2.imshow("image", SharpenedImg)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
-returnHandmarkerImgFromArray(SharpenedImg)
-
-#generate handlandmarker on wiener image
-WienerImg = wienerFilter(img, 50000000000)
-cv2.imshow("image", WienerImg)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
-returnHandmarkerImgFromArray(WienerImg)
-
-#generate handlandmarker on equalized image
-EqualImg = HistogramEqualization(img)
-cv2.imshow("image", EqualImg)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
-returnHandmarkerImgFromArray(EqualImg)
 
 
+if __name__ == '__main__':
+    #generate handlandmarker on original image
+    img = cv2.imread("screenshot.jpg", cv2.IMREAD_COLOR)
+    cv2.imshow("image", img)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+    returnHandmarkerImgFromArray(img)
 
-    
+    #generate handlandmarker on sharpened image
+    SharpenedImg = imageSharpening(img)
+    cv2.imshow("image", SharpenedImg)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+    returnHandmarkerImgFromArray(SharpenedImg)
+
+    #generate handlandmarker on wiener image
+    WienerImg = wienerFilter(img, 50000000000)
+    cv2.imshow("image", WienerImg)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+    returnHandmarkerImgFromArray(WienerImg)
+
+    #generate handlandmarker on equalized image
+    EqualImg = HistogramEqualization(img)
+    cv2.imshow("image", EqualImg)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+    returnHandmarkerImgFromArray(EqualImg)
+
+
+
+        
