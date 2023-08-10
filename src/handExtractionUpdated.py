@@ -91,6 +91,7 @@ def extract_hands(path, visualize=False):
     FPS = int(cap.get(cv.CAP_PROP_FPS))
     VIDEO_OUTPUT_PATH = '/Users/elliot/Documents/NTU 2023/PDAnalysis/extractions/video'       #TODO issues with output_path and what it means
     FRAMES_OUTPUT_PATH = '/Users/elliot/Documents/NTU 2023/PDAnalysis/extractions/'
+
     # Define codec and create a VideoWriter Object
     if visualize:
         print('Visualizing . . .')
