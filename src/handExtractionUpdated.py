@@ -7,7 +7,7 @@ import numpy as np
 import joblib
 import os
 
-from utils.imageSharpening import HistogramEqualization
+from utils.imageSharpening import histogram_equalization
 
 
 # Updated mediapipe solutions March 2023
@@ -17,7 +17,7 @@ HandLandmakerOptions = mp.tasks.vision.HandLandmarkerOptions
 VisionRunningMode = mp.tasks.vision.RunningMode
 
 
-def draw_landmarks_on_image(rgb_image, hand_landmarks):
+def draw_landmarks_on_image(rgb_image: mp.Image, hand_landmarks: list) -> mp.Image:
     """
     Inputs:
         rgb_image: image or frame to be processed
@@ -42,7 +42,7 @@ def draw_landmarks_on_image(rgb_image, hand_landmarks):
 
     return annotated_image
 
-def record_landmarks(hand_landmarks):
+def record_landmarks(hand_landmarks: list) -> np.array:
     """
     Input:
         hand_landmarks: list of landmarks for a given hand
@@ -57,31 +57,39 @@ def record_landmarks(hand_landmarks):
     return np.array(coords_to_narray)
 
 
-def extract_hands(path, visualize=False):
+class Hand:
+    def __init__(self, index: int, category: str, landmark_frame_l: list) -> None:
+        self.index = index
+        self.category = category
+        self.landmarks_by_frame = []
+
+        self.landmarks_by_frame.append(landmark_frame_l)
+
+    def __str__(self) -> str:
+        output_str = f'Hand #{self.index}, Category: {self.category}, Landmarks: {self.landmarks_by_frame}'
+        return output_str
+    
+    def __repr__(self) -> str:
+        return f'{self.landmarks_by_frame}'
+    
+    def get_landmarks(self):
+        return self.landmarks_by_frame
+    
+    def add_frame_landmarks(self, landmark_frame_l: list):
+        self.landmarks_by_frame.append(landmark_frame_l)
+    
+
+def extract_hands(path: str, visualize: bool=False) -> dict():
     """
-    Input: 
+    Extracts landmarkers from video frames. Can visualize and save frame-by-frame.
+    Hands are comprised of 21 landmarkers, each with designated (x, y, z) coordinates.
+    ---------------------------------------------------------------------------------------------
+    Args: 
         path: Path of video capture
         visualize: Visualize the landmark points onto each frame and save the frames as images. 
                    Default set to True.
-    ---------------------------------------------------------------------------------------------
-    extract_hands saves a dictionary that stores landmarkers and hand ID labels. 
-    Landmarkers are stored in a list where each index corresponds to a hand identified in the frame.
-    Hands are comprised of 21 landmarkers, each with designated (x, y, z) coordinates.
-    
-    Landmarkers structure:
-        ['landmarkers'] = [
-            [ (hand_index, numpy_array) ]    
-        ]   
-
-    numpy_array structure (21x3):
-        array = [
-            [x,y,z]
-               .
-               .
-               .
-            [x,y,z]      
-        ]
-        
+    Returns:
+        total_hand_list: Dictionary containing Hand(object)
     """
 
     # Obtain capture and video frame dimensions
@@ -90,14 +98,14 @@ def extract_hands(path, visualize=False):
     HEIGHT = int(cap.get(cv.CAP_PROP_FRAME_HEIGHT))
     FPS = int(cap.get(cv.CAP_PROP_FPS))
     VIDEO_OUTPUT_PATH = '/Users/elliot/Documents/NTU 2023/PDAnalysis/extractions/video'       #TODO issues with output_path and what it means
-    FRAMES_OUTPUT_PATH = '/Users/elliot/Documents/NTU 2023/PDAnalysis/extractions/'
+    FRAMES_OUTPUT_PATH = '/Users/elliot/Documents/NTU 2023/PDAnalysis/extractions/landmark_visuals'
 
     # Define codec and create a VideoWriter Object
     if visualize:
         print('Visualizing . . .')
         print('----------------------------')
         fourcc = cv.VideoWriter_fourcc(*'MJPG')
-        output = cv.VideoWriter(VIDEO_OUTPUT_PATH, fourcc, FPS, (WIDTH, HEIGHT))
+        output = cv.VideoWriter(VIDEO_OUTPUT_PATH, fourcc, FPS, (WIDTH, HEIGHT)) #TODO issues with this
 
     # Create a hand landmarker instance with video mode and specified options
     options = HandLandmakerOptions(
@@ -108,11 +116,12 @@ def extract_hands(path, visualize=False):
         running_mode=VisionRunningMode.VIDEO
         )
     
-    # Detect and build list of landmarks frame-by-frame
-    all_landmarks = {'landmarks': [], 'hand_labels': []}
-    all_landmarks_list = all_landmarks['landmarks']
     frame_num = 0
-
+    total_hands_list = {}
+    # Build list of Hands frame by frame 
+    # Each Hand records its landmarks for the given frame
+    print('Building and Extracting Landmarks')
+    print('------------------------------------------')
     with HandLandmarker.create_from_options(options) as landmarker:
         while True:
             success, frame = cap.read()
@@ -121,53 +130,60 @@ def extract_hands(path, visualize=False):
                 break
             
             # Deblurring of each frame
-            # frame = HistogramEqualization(frame)
+            #frame = HistogramEqualization(frame)
             
             # Convert the frame received from OpenCV to a MediaPipe Image object.
             mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
             # Detect landmarks 
             timestamp = int(cap.get(cv.CAP_PROP_POS_MSEC))
             hand_landmarker_result = landmarker.detect_for_video(mp_image, timestamp)
-            
-            all_landmarks_list.append([])
             if not hand_landmarker_result:
                 continue
             
             # Analyze all hands within the frame and create landmarker visualizations
-            for h_idx, hand_list in enumerate(hand_landmarker_result.hand_landmarks):
-                if hand_landmarker_result.handedness[h_idx][0].score >= 0.95:
-                    # Record hand label
-                    all_landmarks['hand_labels'].append(hand_landmarker_result.handedness[h_idx][0].category_name)
+            for h_idx, all_frame_hand_list in enumerate(hand_landmarker_result.hand_landmarks):
+                accuracy_score = hand_landmarker_result.handedness[h_idx][0].score
+                # Record hand label
+                hand_label = str(hand_landmarker_result.handedness[h_idx][0].category_name)
+                # Record all landmark locations for the frame from list of landmarks
+                hand_landmarks_a = record_landmarks(all_frame_hand_list) if accuracy_score >= 0.95 else []
 
-                    # Record all landmark locations for the frame from list of landmarks
-                    all_landmarks_list[frame_num].append( (h_idx, record_landmarks(hand_list)) )
-
-                    # Draw landmarkers on frame and save to file
-                    if visualize:
-                        frame_name = f'frame_{frame_num}.jpg'
-                        annotated_frame = draw_landmarks_on_image(frame, hand_list)
-                        cv.imwrite(os.path.join(FRAMES_OUTPUT_PATH, frame_name), annotated_frame)
-
+                # Create hand objects  
+                if hand_label in total_hands_list:
+                    current_hand = total_hands_list[hand_label]
+                    current_hand.landmarks_by_frame.append(hand_landmarks_a)
+                else:
+                    print(f'Creating new Hand labeled {hand_label}')
+                    current_hand = Hand(h_idx, hand_label, hand_landmarks_a)
+                    total_hands_list[hand_label] = current_hand
                 
+                # Draw landmarkers on frame and save to file
+                if visualize and accuracy_score >= 0.95:
+                    frame_name = f'frame_{frame_num}.jpg'
+                    annotated_frame = draw_landmarks_on_image(frame, all_frame_hand_list)
+                    cv.imwrite(os.path.join(FRAMES_OUTPUT_PATH, frame_name), annotated_frame)
+
             frame_num += 1
             if frame_num >= 80 * 59:
                 break
     
     ##TODO Uncomment to save landmarks as a .txt file 
-    joblib.dump(all_landmarks, f"{OUTPUT_PATH}right_hand_{os.path.basename(path)[:-4]}.txt")
+    #joblib.dump(total_hands_list, f"{OUTPUT_PATH}{os.path.basename(path)[:-4]}.txt")
 
     cap.release()
     if visualize:
         output.release()
 
-    return all_landmarks
+    return total_hands_list
 
 
 if __name__ == '__main__':
     print('Beginning Script . . .')
     print('--------------------------------')
     path_to_video = '/Users/elliot/Documents/NTU 2023/PDAnalysis/20200702_9BL.mp4'
-    extract_hands(path_to_video, visualize=True)
+    extract_hands(path_to_video, visualize=False)
+    print('--------------------------------')
+    print('Done extracting landmarks!')
     
 
 
