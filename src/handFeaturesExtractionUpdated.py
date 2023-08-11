@@ -122,10 +122,9 @@ def extract_hand_turning(hand_landmarks, landmark_index=21, plot=False):
     output = []
 
     for finger_idx in range(1, landmark_index + 1):
-        # Using top third of thumb finger as the basis
         hand_land_sum = hand_landmarks[:, :, [finger_idx - 1, finger_idx], 0][0].sum(axis=1)
+        print(hand_land_sum)
 
-        # Tracking the rotation through the top third of index finger
         period, _ = find_period(hand_land_sum)
         peaks_indx, _ = find_peaks(
                             hand_land_sum, 
@@ -139,7 +138,8 @@ def extract_hand_turning(hand_landmarks, landmark_index=21, plot=False):
                 peaks_indx=peaks_indx,
                 title=f'Current Finger Index: {finger_idx}',
                 x_label='Identified Frame',
-                y_label='Finger x-axis Displacement'
+                y_label='Finger x-axis Displacement',
+                save=True
             )
 
         # h = mean of each peaks duration (second)

@@ -1,18 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def plot_hand_features(hand_land_sum, peaks_indx, title='', x_label = '', y_label=''):
-    """
-    Plots features for hand extraction. 
-    ----------------------------------------
-    Args:
-        hand_land_sum: processed hand landmarks
-        peaks_indx: peaks of periods for hands
-        title: title of plot
-        x_label: x-axis title
-        y_label: y-axis title
-    """
-    _, ax = plt.subplots()
+def plot_hand_features(hand_land_sum, 
+                       peaks_indx, 
+                       title: str='', 
+                       x_label: str = '', 
+                       y_label: str='', 
+                       save: bool=False) -> None:
+    fig, ax = plt.subplots()
     ax.plot(hand_land_sum)
     plt.grid(which='major', axis='both')
     ax.set_xlabel(x_label)
@@ -20,3 +15,6 @@ def plot_hand_features(hand_land_sum, peaks_indx, title='', x_label = '', y_labe
     ax.set_ylabel(y_label)
     ax.set_title(title)
     plt.show()
+
+    if save == True:
+        fig.savefig(f'/Users/elliot/Documents/NTU 2023/PDAnalysis/extractions/plots/{title}.png')

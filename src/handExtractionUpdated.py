@@ -121,7 +121,7 @@ def extract_hands(path, visualize=False):
                 break
             
             # Deblurring of each frame
-            frame = HistogramEqualization(frame)
+            # frame = HistogramEqualization(frame)
             
             # Convert the frame received from OpenCV to a MediaPipe Image object.
             mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
@@ -147,6 +147,7 @@ def extract_hands(path, visualize=False):
                         frame_name = f'frame_{frame_num}.jpg'
                         annotated_frame = draw_landmarks_on_image(frame, hand_list)
                         cv.imwrite(os.path.join(FRAMES_OUTPUT_PATH, frame_name), annotated_frame)
+
                 
             frame_num += 1
             if frame_num >= 80 * 59:
