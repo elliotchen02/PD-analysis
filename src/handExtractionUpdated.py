@@ -154,7 +154,7 @@ def extract_hands(path, visualize=False):
                 break
     
     ##TODO Uncomment to save landmarks as a .txt file 
-    #joblib.dump(all_landmarks, f"{OUTPUT_PATH}right_hand_{os.path.basename(path)[:-4]}.txt")
+    joblib.dump(all_landmarks, f"{OUTPUT_PATH}right_hand_{os.path.basename(path)[:-4]}.txt")
 
     cap.release()
     if visualize:
