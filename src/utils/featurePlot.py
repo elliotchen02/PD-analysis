@@ -1,8 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def plot_hand_features(hand_land_sum, 
-                       peaks_indx, 
+def plot_hand_features(hand_land_sum: np.array, 
+                       peaks_indx: int, 
                        title: str='', 
                        x_label: str = '', 
                        y_label: str='', 

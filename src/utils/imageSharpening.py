@@ -76,9 +76,9 @@ def imageDeblur(img):
     deconvolved, _ = skimage.restoration.unsupervised_wiener(greyImg, psf)
     
     return deconvolved
-   
-    
-def HistogramEqualization(img):
+
+
+def histogram_equalization(img):
     #converting image from rbg color space into HSV colorspace
     HSVimage = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     
