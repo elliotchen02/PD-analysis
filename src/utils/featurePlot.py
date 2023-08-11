@@ -17,4 +17,4 @@ def plot_hand_features(hand_land_sum: np.array,
     plt.show()
 
     if save == True:
-        fig.savefig(f'/Users/elliot/Documents/NTU 2023/PDAnalysis/extractions/plots/{title}.png')
+        fig.savefig(f'/Users/elliot/Documents/NTU 2023/PDAnalysis/extractions/plots/raw/{title}.png')

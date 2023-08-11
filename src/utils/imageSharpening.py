@@ -21,7 +21,7 @@ import scipy.signal
 #Thus we are attempting to find reliable ways to sharpen each individual frames within the video
 #Hoping that the sharpen edges can improve the precision of the landmarking, improving the reliability of the model
 
-def imageSharpening(img):
+def image_sharpening(img):
     kernel = np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]])
     #this is the kernel for image sharpening
     #the following is the possible kernels for edge detection

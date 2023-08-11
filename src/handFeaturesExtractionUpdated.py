@@ -81,6 +81,8 @@ def extract_hand_turning(hand_obj: Hand, landmark_index: int=21, plot: bool=Fals
    """
     output = []
     hand_landmarks = np.array(hand_obj.get_landmarks())
+    print(f'Extracting hand turning features for {hand_obj.get_category()} hand')
+    print('---------------------------')
     print(np.shape(hand_landmarks))
     for finger_idx in range(0, landmark_index):
         hand_land_sum = hand_landmarks[:, finger_idx, 0]
@@ -99,7 +101,7 @@ def extract_hand_turning(hand_obj: Hand, landmark_index: int=21, plot: bool=Fals
                 title=f'Current Finger Index: {finger_idx + 1}',
                 x_label='Identified Frame',
                 y_label='Finger x-axis Displacement',
-                save=False
+                save=True
             )
 
         # h = mean of each peaks duration (second)
@@ -133,9 +135,8 @@ def single_thumb_index_hand(r_path, l_path, out_dir):
 if __name__ == '__main__':
     video_path = '/Users/elliot/Documents/NTU 2023/PDAnalysis/20200702_9BL.mp4'
     hands_in_video_l = preprocess_landmarks(extract_hands(video_path))
-    
-    for hand_obj in hands_in_video_l:
-        print(extract_hand_turning(hand_obj, plot=True))
+   
+    extract_hand_turning(hands_in_video_l[0], plot=True)
 
     
     

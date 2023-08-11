@@ -14,11 +14,14 @@ def find_period(arr):
     acf_result = autocorr(arr - mean)
     peaks, _ = find_peaks(acf_result)
 
-    if peaks[0] > 50:
-        period = peaks[0]
-    else:
-        period = peaks[1]
-
+    try: 
+        if peaks[0] > 50:
+            period = peaks[0]
+        else:
+            period = peaks[1]
+    except IndexError:
+        raise IndexError
+    
     return period, acf_result
 
 

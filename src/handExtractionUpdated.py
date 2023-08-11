@@ -7,7 +7,7 @@ import numpy as np
 import joblib
 import os
 
-from utils.imageSharpening import histogram_equalization
+from utils.imageSharpening import histogram_equalization, image_sharpening
 
 
 # Updated mediapipe solutions March 2023
@@ -25,7 +25,6 @@ def draw_landmarks_on_image(rgb_image: mp.Image, hand_landmarks: list) -> mp.Ima
     Outputs:
         annotated_image: image with landmarks drawn
     """
-
     annotated_image = np.copy(rgb_image)
 
     # Draw the hand landmarks
@@ -42,13 +41,8 @@ def draw_landmarks_on_image(rgb_image: mp.Image, hand_landmarks: list) -> mp.Ima
 
     return annotated_image
 
+
 def record_landmarks(hand_landmarks: list) -> list[float]:
-    """
-    Input:
-        hand_landmarks: list of landmarks for a given hand
-    Output:
-        array of landmark coordinates
-    """
     coords_to_narray = []
 
     for landmark_point in hand_landmarks:
@@ -74,6 +68,12 @@ class Hand:
     
     def get_landmarks(self):
         return self.landmarks_by_frame
+
+    def get_category(self):
+        return self.category
+    
+    def get_index(self):
+        return self.index
     
     def add_frame_landmarks(self, landmark_frame_l: list):
         self.landmarks_by_frame.append(landmark_frame_l)
@@ -130,7 +130,7 @@ def extract_hands(path: str, visualize: bool=False) -> dict():
                 break
             
             # Deblurring of each frame
-            #frame = HistogramEqualization(frame)
+            #frame = image_sharpening(frame)
             
             # Convert the frame received from OpenCV to a MediaPipe Image object.
             mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
@@ -173,8 +173,11 @@ def extract_hands(path: str, visualize: bool=False) -> dict():
     cap.release()
     if visualize:
         output.release()
-    print(total_hands_list)
+    print('---------------------------')
+    print(f'Dictionary output of hands: {total_hands_list}')
+    print('---------------------------')
     return total_hands_list
+
 
 def preprocess_landmarks(extraction_dict: dict) -> list[Hand]:
     """
@@ -198,8 +201,7 @@ if __name__ == '__main__':
     print('--------------------------------')
     print('Done extracting landmarks!')
     
-    processed_list = preprocess_landmarks(hand_dict)
-    print(np.shape(processed_list[0].landmarks_by_frame))
+
 
 
 
