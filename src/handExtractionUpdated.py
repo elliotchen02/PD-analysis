@@ -42,19 +42,19 @@ def draw_landmarks_on_image(rgb_image: mp.Image, hand_landmarks: list) -> mp.Ima
 
     return annotated_image
 
-def record_landmarks(hand_landmarks: list) -> np.array:
+def record_landmarks(hand_landmarks: list) -> list[float]:
     """
     Input:
         hand_landmarks: list of landmarks for a given hand
     Output:
-        numpy array of landmark coordinates
+        array of landmark coordinates
     """
     coords_to_narray = []
 
     for landmark_point in hand_landmarks:
         coords_to_narray.append([landmark_point.x, landmark_point.y, landmark_point.z])
     
-    return np.array(coords_to_narray)
+    return coords_to_narray
 
 
 class Hand:
@@ -70,7 +70,7 @@ class Hand:
         return output_str
     
     def __repr__(self) -> str:
-        return f'{self.landmarks_by_frame}'
+        return f'{self.category} Hand #{self.index}'
     
     def get_landmarks(self):
         return self.landmarks_by_frame
@@ -145,20 +145,20 @@ def extract_hands(path: str, visualize: bool=False) -> dict():
                 accuracy_score = hand_landmarker_result.handedness[h_idx][0].score
                 # Record hand label
                 hand_label = str(hand_landmarker_result.handedness[h_idx][0].category_name)
-                # Record all landmark locations for the frame from list of landmarks
-                hand_landmarks_a = record_landmarks(all_frame_hand_list) if accuracy_score >= 0.95 else []
+                # Obtain the 21 landmarks
+                hand_landmarks_a = record_landmarks(all_frame_hand_list)
 
                 # Create hand objects  
-                if hand_label in total_hands_list:
+                if hand_label in total_hands_list and accuracy_score >= 0.9:
                     current_hand = total_hands_list[hand_label]
                     current_hand.landmarks_by_frame.append(hand_landmarks_a)
-                else:
-                    print(f'Creating new Hand labeled {hand_label}')
+                elif hand_label not in total_hands_list:
+                    print(f'Creating new Hand labeled {hand_label}')        # TODO If doesn't exist, put in random array that could be inaccurate. Need to address. Could use imputation.
                     current_hand = Hand(h_idx, hand_label, hand_landmarks_a)
                     total_hands_list[hand_label] = current_hand
                 
                 # Draw landmarkers on frame and save to file
-                if visualize and accuracy_score >= 0.95:
+                if visualize and accuracy_score >= 0.9:
                     frame_name = f'frame_{frame_num}.jpg'
                     annotated_frame = draw_landmarks_on_image(frame, all_frame_hand_list)
                     cv.imwrite(os.path.join(FRAMES_OUTPUT_PATH, frame_name), annotated_frame)
@@ -173,18 +173,33 @@ def extract_hands(path: str, visualize: bool=False) -> dict():
     cap.release()
     if visualize:
         output.release()
-
+    print(total_hands_list)
     return total_hands_list
+
+def preprocess_landmarks(extraction_dict: dict) -> list[Hand]:
+    """
+    Args:
+        extraction_dict: Dictionary recieved from extract_hands
+    Output:
+        processed_list: List[Hand(object)]
+    
+    """
+    processed_list = []
+    for hand_obj in extraction_dict.values():
+        processed_list.append(hand_obj)
+    return processed_list
 
 
 if __name__ == '__main__':
     print('Beginning Script . . .')
     print('--------------------------------')
     path_to_video = '/Users/elliot/Documents/NTU 2023/PDAnalysis/20200702_9BL.mp4'
-    extract_hands(path_to_video, visualize=False)
+    hand_dict = extract_hands(path_to_video, visualize=False)
     print('--------------------------------')
     print('Done extracting landmarks!')
     
+    processed_list = preprocess_landmarks(hand_dict)
+    print(np.shape(processed_list[0].landmarks_by_frame))
 
 
 
